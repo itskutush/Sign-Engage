@@ -8,5 +8,5 @@ Individuals unaware of sign language are unable to communicate with the deaf and
  - Working Professionals
 
 ## Main Feature
-Teaching Indian Sign Language in a gamified way.
+Teaching Indian Sign Language.
 
