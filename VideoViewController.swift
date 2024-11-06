@@ -10,19 +10,12 @@ import AVKit
 import AVFoundation
 
 class VideoViewController: UIViewController {
-    // Array to hold video data
-    /*let videos: [(String, String, [(String, TimeInterval)])] = [
-        ("Hello", "Hello", [(" 1. Raise your hand", 2.0), (" 2. Make a fist", 3.0)]),
-        ("Good Afternoon", "Good Afternoon", [(" 1. Wave your hand", 2.0), (" 2. Smile", 4.0)]),
-        ("Yes", "Yes", [(" 1. Nod your hand", 2.0), (" 2. Keep a happy face", 4.0)]),
-        ("No", "No", [(" 1. Move your head left to right ", 2.0), (" 2. Keep a steady face", 4.0)])
-    ]
-    */
+    
+    var selectedVideo : Video!
     var currentVideoIndex: Int = 0
     var playerViewController: AVPlayerViewController?
     var transcriptionItems: [(String, TimeInterval)] = []
     var transcriptionTimer: Timer?
-
     //Outlets for ui elements
     @IBOutlet var titleLabel: UILabel!
     
@@ -32,13 +25,58 @@ class VideoViewController: UIViewController {
     
     @IBOutlet var nextButton: UIButton!
     
+    
+    @IBOutlet var loadingIndicator: UIActivityIndicatorView!
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        loadVideo()
+    }
+    
         override func viewDidLoad() {
         super.viewDidLoad()
-        loadVideo()
+            
+            NSLayoutConstraint.activate([
+                // nextButton constraints
+                nextButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
+                nextButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+                nextButton.widthAnchor.constraint(equalToConstant: 353),
+                nextButton.heightAnchor.constraint(equalToConstant: 50)
+            ])
         
+
+            
+            guard selectedVideo != nil else {
+                print("Selected video is nil.")
+                return
+            }
+            //Set the title and find the current video index
+            //self.title = "Observe"
+            if let index = videoData.shared.videos.firstIndex(where: { $0.title == selectedVideo.title }) {
+                currentVideoIndex = index
+            }else {
+                print("Selected video not found in the video data.")
+            }
+            //makes the keyboard not pop up when transcriptions are clicked
+            transcriptionTextView.isEditable = false
+            transcriptionTextView.isSelectable = false
+            //loadVideo()
     }
     func loadVideo() {
-        let videoData = videos[currentVideoIndex]
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            [weak self] in self?.loadingIndicator.startAnimating()
+        }
+        //Start loading indicator
+        loadingIndicator.startAnimating()
+        //Ensure currentVideoIndex is valid
+        guard currentVideoIndex < videoData.shared.videos.count else {
+            print("No more videos to play.")
+            loadingIndicator.stopAnimating()
+            return
+        }
+        
+        //Retrieve current video data
+        let videoData = videoData.shared.videos[currentVideoIndex]
         titleLabel.text = videoData.title
         transcriptionItems = videoData.transcriptions
 
@@ -48,6 +86,7 @@ class VideoViewController: UIViewController {
             
             // Initialize the player with the video URL
             let player = AVPlayer(url: videoURL)
+            player.seek(to: .zero)
             
             // Create an AVPlayerViewController and embed it in the videoView
             playerViewController = AVPlayerViewController()
@@ -65,6 +104,9 @@ class VideoViewController: UIViewController {
             // Play the video
             player.play()
             
+            //stop loading indicator
+            loadingIndicator.stopAnimating()
+            
             // Start the transcription timer
             startTranscriptionTimer()
             
@@ -72,6 +114,7 @@ class VideoViewController: UIViewController {
             NotificationCenter.default.addObserver(self, selector: #selector(videoDidEnd), name: .AVPlayerItemDidPlayToEndTime, object: player.currentItem)
         } else {
             print("Video file not found.")
+            loadingIndicator.stopAnimating()
         }
 
         // Clear the transcription text initially
@@ -103,7 +146,7 @@ class VideoViewController: UIViewController {
     }
     
     @IBAction func nextButtonTapped(_ sender: UIButton) {
-        if currentVideoIndex < videos.count - 1 {
+        if currentVideoIndex < videoData.shared.videos.count - 1 {
                     currentVideoIndex += 1
                 } else {
                     currentVideoIndex = 0 // Loop back to the first video
@@ -117,6 +160,15 @@ class VideoViewController: UIViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         playerViewController?.view.frame = videoView.bounds // Update the frame to fit the video view
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        
+        // Stop video and clear transcription when navigating back
+        playerViewController?.player?.pause()
+        transcriptionTimer?.invalidate()
+        loadingIndicator.stopAnimating()
     }
 
     deinit {
