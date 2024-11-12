@@ -1,10 +1,3 @@
-//
-//  ViewController.swift
-//  quiz_SignEngage
-//
-//  Created by user@89 on 06/11/24.
-//
-
 import UIKit
 import AVKit
 import AVFoundation
@@ -24,6 +17,7 @@ class ViewController: UIViewController {
     @IBOutlet weak var optionButton2: UIButton!
     @IBOutlet weak var optionButton3: UIButton!
     @IBOutlet weak var optionButton4: UIButton!
+    @IBOutlet weak var nextButton: UIButton! // Reference for Next Button
     
     let quizQuestions = [
         QuizQuestion(videoName: "Bye - Bye", options: ["Bye Bye", "Hi", "What", "No"], correctAnswerIndex: 0),
@@ -43,6 +37,7 @@ class ViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        nextButton.isEnabled = false // Disable next button initially
         displayCurrentQuestion()
     }
     
@@ -58,7 +53,9 @@ class ViewController: UIViewController {
         
         // Set up the player layer to display in the videoView
         let playerLayer = AVPlayerLayer(player: player)
-        playerLayer.frame = videoView.bounds
+        playerLayer.frame = videoView.bounds // Ensure the player layer covers the bounds of the video view
+        playerLayer.cornerRadius = 14  // Set the corner radius
+        playerLayer.masksToBounds = true // Apply the corner radius mask
         
         // Clear any previous video layer to avoid overlaps
         videoView.layer.sublayers?.forEach { $0.removeFromSuperlayer() }
@@ -95,7 +92,6 @@ class ViewController: UIViewController {
         for (index, button) in buttons.enumerated() {
             button?.setTitle(question.options[index], for: .normal)
             button?.tag = index
-            //button?.configuration?.cornerStyle = .capsule
             button?.layer.cornerRadius = 16
             button?.configuration = UIButton.Configuration.filled()
             button?.configuration?.titleAlignment = .center
@@ -111,20 +107,22 @@ class ViewController: UIViewController {
 
         // Apply tick or cross icon to the selected option
         [optionButton1, optionButton2, optionButton3, optionButton4].forEach { button in
-            // Set the tick or cross icon only on the selected answer
             if button == sender {
-                setAnswerIcon(for: button!, isCorrect: isCorrect)  // Show tick or cross
-                button?.backgroundColor = UIColor.systemBlue // Selected option in blue
-                button?.setTitleColor(UIColor.white, for: .normal) // Set text color to white
+                setAnswerIcon(for: button!, isCorrect: isCorrect)
+                button?.backgroundColor = UIColor.systemBlue
+                button?.setTitleColor(UIColor.white, for: .normal)
             } else {
                 button?.backgroundColor = UIColor.systemGray2
-                button?.setTitleColor(UIColor.white, for: .normal) // Keep text white
-                button?.setImage(nil, for: .normal) // No icon for unselected options
+                button?.setTitleColor(UIColor.white, for: .normal)
+                button?.setImage(nil, for: .normal)
             }
         }
         
         // Disable all buttons after answering
         [optionButton1, optionButton2, optionButton3, optionButton4].forEach { $0.isEnabled = false }
+        
+        // Enable the next button after selecting an option
+        nextButton.isEnabled = true
         
         // Update the correct answer count
         if isCorrect {
@@ -136,11 +134,14 @@ class ViewController: UIViewController {
         // Reset all options to their initial state (without tick/cross icon or color change)
         let buttons = [optionButton1, optionButton2, optionButton3, optionButton4]
         for button in buttons {
-            button?.backgroundColor = UIColor.systemBlue // Reset to initial button color
-            button?.setTitleColor(UIColor.white, for: .normal) // Reset text color
-            button?.setImage(nil, for: .normal) // Remove any tick/cross image
+            button?.backgroundColor = UIColor.systemBlue
+            button?.setTitleColor(UIColor.white, for: .normal)
+            button?.setImage(nil, for: .normal)
             button?.isEnabled = true // Re-enable buttons for next question
         }
+        
+        // Reset the Next button to disabled initially
+        nextButton.isEnabled = false
     }
 
     @IBAction func nextButtonTapped(_ sender: UIButton) {
@@ -156,8 +157,7 @@ class ViewController: UIViewController {
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "showCompletionScreen" {
             let destinationVC = segue.destination as! CompletionViewController
-            // Assuming you have a `correctAnswersCount` variable to track correct answers
-            destinationVC.scoreText = "\(correctAnswersCount)/\(quizQuestions.count)"
+            destinationVC.totalScore = correctAnswersCount // Pass the integer value
         }
     }
 }
