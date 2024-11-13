@@ -1,0 +1,21 @@
+{
+  "images" : [
+    {
+      "filename" : "What Does This Emoji Mean? Emoji Face and Smiley Meanings Explained.jpg",
+      "idiom" : "universal",
+      "scale" : "1x"
+    },
+    {
+      "idiom" : "universal",
+      "scale" : "2x"
+    },
+    {
+      "idiom" : "universal",
+      "scale" : "3x"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
