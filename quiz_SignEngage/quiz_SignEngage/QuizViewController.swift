@@ -26,52 +26,57 @@ class QuizViewController: UIViewController {
         QuizQuestion(videoName: "Yes", options: ["No", "Yes", "Stop", "Bye"], correctAnswerIndex: 1)
     ]
 
+
     var currentQuestionIndex = 0
     var correctAnswersCount = 0
-    
+    var player: AVPlayer?
+    var playerViewController: AVPlayerViewController?
+
     override func viewDidLoad() {
         super.viewDidLoad()
         nextButton.isEnabled = false // Disable next button initially
+        setupButtons([optionButton1, optionButton2, optionButton3, optionButton4])
         displayCurrentQuestion()
     }
     
+    func setupButtons(_ buttons: [UIButton]) {
+        for button in buttons {
+            button.configuration = UIButton.Configuration.filled()
+            button.configuration?.cornerStyle = .large
+            button.layer.cornerRadius = 16
+            button.setTitleColor(UIColor.white, for: .normal)
+            button.configuration?.baseBackgroundColor = UIColor.systemBlue
+        }
+    }
+    
     func playVideo(for question: QuizQuestion) {
-        // Access the video file in the app bundle
         guard let path = Bundle.main.path(forResource: question.videoName, ofType: "mov") else {
             print("Video not found: \(question.videoName)")
             return
         }
+
+        // Initialize AVPlayer with video URL
+        let url = URL(fileURLWithPath: path)
+        player = AVPlayer(url: url)
         
-        // Create an AVPlayer to play the video
-        let player = AVPlayer(url: URL(fileURLWithPath: path))
+        // Set up AVPlayerViewController with controls
+        playerViewController = AVPlayerViewController()
+        playerViewController?.player = player
+        playerViewController?.showsPlaybackControls = true
+
+        // Embed playerViewController's view in videoView
+        addChild(playerViewController!)
+        playerViewController?.view.frame = videoView.bounds
+        playerViewController?.view.layer.cornerRadius = 16
+        playerViewController?.view.clipsToBounds = true
+        videoView.addSubview(playerViewController!.view)
+        playerViewController?.didMove(toParent: self)
         
-        // Clear any previous video layer to avoid overlaps
-        videoView.layer.sublayers?.forEach { $0.removeFromSuperlayer() }
-        
-        // Set up the player layer to display in the videoView
-        let playerLayer = AVPlayerLayer(player: player)
-        
-        // Update the frame in `layoutSubviews` to handle any layout changes dynamically
-        playerLayer.frame = videoView.bounds
-        playerLayer.cornerRadius = 16  // Set the corner radius
-        playerLayer.masksToBounds = true // Apply the corner radius mask
-        
-        // Add the player layer to the video view
-        videoView.layer.addSublayer(playerLayer)
-        
-        // Observe the view's bounds to adjust the frame of the player layer
-        NotificationCenter.default.addObserver(forName: UIDevice.orientationDidChangeNotification, object: nil, queue: .main) { [weak videoView] _ in
-            playerLayer.frame = videoView?.bounds ?? .zero
-        }
-        
-        // Start playing the video
-        player.play()
+        player?.play()
     }
     
     func setAnswerIcon(for button: UIButton, isCorrect: Bool) {
         let iconImage = UIImage(named: isCorrect ? "tick" : "cross")
-        button.configuration?.cornerStyle = .large
-        button.layer.cornerRadius = 16
         button.setImage(iconImage, for: .normal)
         button.semanticContentAttribute = .forceRightToLeft
         button.configuration?.imagePlacement = .leading
@@ -89,20 +94,14 @@ class QuizViewController: UIViewController {
         playVideo(for: question)
         
         // Reset buttons and set options for the current question
-        resetButtons() // Reset the buttons before loading the new question
+        resetButtons()
         
         // Set options for the current question
         let buttons = [optionButton1, optionButton2, optionButton3, optionButton4]
         for (index, button) in buttons.enumerated() {
             button?.setTitle(question.options[index], for: .normal)
             button?.tag = index
-            button?.configuration?.cornerStyle = .large
-            button?.layer.cornerRadius = 16
-            button?.configuration = UIButton.Configuration.filled()
-            button?.configuration?.titleAlignment = .center
-            button?.setTitleColor(UIColor.white, for: .normal)
-            button?.configuration?.baseBackgroundColor = UIColor.systemBlue // Reset color
-            button?.isEnabled = true // Ensure buttons are enabled for the current question
+            button?.isEnabled = true
         }
     }
 
@@ -117,7 +116,7 @@ class QuizViewController: UIViewController {
                 button?.backgroundColor = UIColor.systemBlue
                 button?.setTitleColor(UIColor.white, for: .normal)
             } else {
-                button?.backgroundColor = UIColor.systemGray4
+                button?.backgroundColor = UIColor.systemGray5
                 button?.setTitleColor(UIColor.white, for: .normal)
                 button?.setImage(nil, for: .normal)
             }
@@ -137,14 +136,13 @@ class QuizViewController: UIViewController {
     
     func resetButtons() {
         // Reset all options to their initial state (without tick/cross icon or color change)
-        let buttons = [optionButton1, optionButton2, optionButton3, optionButton4]
-        for button in buttons {
-            button?.backgroundColor = UIColor.systemBlue
-            button?.configuration?.cornerStyle = .large
-            button?.layer.cornerRadius = 16
-            button?.setTitleColor(UIColor.white, for: .normal)
-            button?.setImage(nil, for: .normal)
-            button?.isEnabled = true // Re-enable buttons for next question
+        setupButtons([optionButton1, optionButton2, optionButton3, optionButton4])
+        
+        // Clear any tick or cross icon from the buttons
+        [optionButton1, optionButton2, optionButton3, optionButton4].forEach { button in
+            button?.setImage(nil, for: .normal) // Remove tick/cross icon
+            button?.backgroundColor = UIColor.systemBlue // Reset background color
+            button?.setTitleColor(UIColor.white, for: .normal) // Reset text color
         }
         
         // Reset the Next button to disabled initially
