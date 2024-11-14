@@ -35,6 +35,7 @@ class CompletionViewController: UIViewController {
 
     @IBAction func finishButtonTapped(_ sender: UIButton) {
         // Code to close the quiz or go back to the main screen
-        dismiss(animated: true, completion: nil)
+        //dismiss(animated: true, completion: nil)
+        exit(0)
     }
 }
