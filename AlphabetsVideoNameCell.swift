@@ -11,3 +11,4 @@ class AlphabetsVideoNameCell: UICollectionViewCell {
     
     @IBOutlet var titleLabel: UILabel!
 }
+//itskutush

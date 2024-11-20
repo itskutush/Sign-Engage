@@ -1,8 +1,9 @@
 //
 //  ViewController.swift
-//  
+//  Collection View Flow Layout 2
 //
-//  Created by user@90 on 22/10/24.
+//  Created by user@90 on 01/11/24.
+
 //
 
 import UIKit
@@ -10,7 +11,7 @@ import UIKit
 class AlphabetsListViewController: UIViewController , UICollectionViewDataSource,UICollectionViewDelegateFlowLayout{
     
     // Accessing the shared instance of the video data model.
-    let videoDataModel = videoData.shared
+    let videoDataModel = AlphabetsDataModel.shared
     
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
@@ -27,7 +28,7 @@ class AlphabetsListViewController: UIViewController , UICollectionViewDataSource
     
     // This method configures the cell for each item in the collection view.
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "VideoNameCell", for: indexPath) as! AlphabetsVideoNameCell
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "AlphabetsVideoNameCell", for: indexPath) as! AlphabetsVideoNameCell
 
         // Access the video object from the data model using the current index.
         let video = videoDataModel.videos[indexPath.row]
@@ -58,6 +59,7 @@ class AlphabetsListViewController: UIViewController , UICollectionViewDataSource
         // Set the data source and delegate for the collection view to this view controller.
         collectionView.dataSource = self
         collectionView.delegate = self
+        navigationController?.navigationBar.prefersLargeTitles = false
         
       // collectionView.contentInset = UIEdgeInsets(top: 15, left: 15, bottom: 15, right: 15)
         // Configure collection view layout if it's a UICollectionViewFlowLayout.
@@ -108,7 +110,7 @@ class AlphabetsListViewController: UIViewController , UICollectionViewDataSource
                 let selectedVideo = videoDataModel.videos[indexPath.row]
                 
                 if let videoVC = segue.destination as? AlphabetsVideoViewController{
-                    videoVC.selectedVideo = selectedVideo
+                    videoVC.AlphabetsselectedVideo = selectedVideo
                 }
                 
             }
