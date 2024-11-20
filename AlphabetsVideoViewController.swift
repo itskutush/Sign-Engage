@@ -11,11 +11,11 @@ import AVFoundation
 
 class AlphabetsVideoViewController: UIViewController {
     
-    var selectedVideo : Video!
-    var currentVideoIndex: Int = 0
-    var playerViewController: AVPlayerViewController?
-    var transcriptionItems: [(String, TimeInterval)] = []
-    var transcriptionTimer: Timer?
+    var AlphabetsselectedVideo : AlphabetsVideo!
+    var AlphabetscurrentVideoIndex: Int = 0
+    var AlphabetsplayerViewController: AVPlayerViewController?
+    var AlphabetstranscriptionItems: [(String, TimeInterval)] = []
+    var AlphabetstranscriptionTimer: Timer?
     //Outlets for ui elements
     @IBOutlet var titleLabel: UILabel!
     
@@ -46,14 +46,14 @@ class AlphabetsVideoViewController: UIViewController {
         
 
             
-            guard selectedVideo != nil else {
+            guard AlphabetsselectedVideo != nil else {
                 print("Selected video is nil.")
                 return
             }
             //Set the title and find the current video index
             //self.title = "Observe"
-            if let index = videoData.shared.videos.firstIndex(where: { $0.title == selectedVideo.title }) {
-                currentVideoIndex = index
+            if let index = AlphabetsDataModel.shared.videos.firstIndex(where: { $0.title == AlphabetsselectedVideo.title }) {
+                AlphabetscurrentVideoIndex = index
             }else {
                 print("Selected video not found in the video data.")
             }
@@ -70,16 +70,16 @@ class AlphabetsVideoViewController: UIViewController {
         //Start loading indicator
         loadingIndicator.startAnimating()
         //Ensure currentVideoIndex is valid
-        guard currentVideoIndex < videoData.shared.videos.count else {
+        guard AlphabetscurrentVideoIndex < AlphabetsDataModel.shared.videos.count else {
             print("No more videos to play.")
             loadingIndicator.stopAnimating()
             return
         }
         
         //Retrieve current video data
-        let videoData = videoData.shared.videos[currentVideoIndex]
+        let videoData = AlphabetsDataModel.shared.videos[AlphabetscurrentVideoIndex]
         titleLabel.text = videoData.title
-        transcriptionItems = videoData.transcriptions
+        AlphabetstranscriptionItems = videoData.transcriptions
 
         // Create the video URL from the video file name
         if let path = Bundle.main.path(forResource: videoData.fileName, ofType: "mov") {
@@ -90,17 +90,17 @@ class AlphabetsVideoViewController: UIViewController {
             player.seek(to: .zero)
             
             // Create an AVPlayerViewController and embed it in the videoView
-            playerViewController = AVPlayerViewController()
-            playerViewController?.player = player
+            AlphabetsplayerViewController = AVPlayerViewController()
+            AlphabetsplayerViewController?.player = player
             
             // Set the frame of the playerViewController's view
-            playerViewController?.view.frame = videoView.bounds
-            playerViewController?.view.layer.cornerRadius = 14  // Set the corner radius
-            playerViewController?.view.layer.masksToBounds = true // Apply the corner radius mask
-            playerViewController?.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            AlphabetsplayerViewController?.view.frame = videoView.bounds
+            AlphabetsplayerViewController?.view.layer.cornerRadius = 14  // Set the corner radius
+            AlphabetsplayerViewController?.view.layer.masksToBounds = true // Apply the corner radius mask
+            AlphabetsplayerViewController?.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
             
             // Add the playerViewController's view to your videoView
-            videoView.addSubview(playerViewController!.view)
+            videoView.addSubview(AlphabetsplayerViewController!.view)
             
             // Play the video
             player.play()
@@ -122,15 +122,15 @@ class AlphabetsVideoViewController: UIViewController {
         transcriptionTextView.text = ""
     }
     func startTranscriptionTimer() {
-        transcriptionTimer?.invalidate() // Clear any existing timer
-        transcriptionTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(updateTranscriptions), userInfo: nil, repeats: true)
+        AlphabetstranscriptionTimer?.invalidate() // Clear any existing timer
+        AlphabetstranscriptionTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(updateTranscriptions), userInfo: nil, repeats: true)
     }
 
     @objc func updateTranscriptions() {
-        guard let currentTime = playerViewController?.player?.currentTime().seconds else { return }
+        guard let currentTime = AlphabetsplayerViewController?.player?.currentTime().seconds else { return }
         
         // Filter transcriptions that should be displayed at the current time
-        let currentTranscriptions = transcriptionItems.filter { $0.1 <= currentTime }
+        let currentTranscriptions = AlphabetstranscriptionItems.filter { $0.1 <= currentTime }
         transcriptionTextView.text = currentTranscriptions.map { $0.0 }.joined(separator: "\n\n")
     }
 
@@ -139,41 +139,77 @@ class AlphabetsVideoViewController: UIViewController {
         transcriptionTextView.text = ""
         
         // Invalidate the timer to stop transcription updates
-        transcriptionTimer?.invalidate()
+        AlphabetstranscriptionTimer?.invalidate()
         
         // Rewind to the beginning
-        playerViewController?.player?.seek(to: .zero)
+        AlphabetsplayerViewController?.player?.seek(to: .zero)
         startTranscriptionTimer()
     }
     
     @IBAction func nextButtonTapped(_ sender: UIButton) {
-        if currentVideoIndex < videoData.shared.videos.count - 1 {
-                    currentVideoIndex += 1
-                } else {
-                    currentVideoIndex = 0 // Loop back to the first video
-                }
-                
+        // Check if the button's title is "Take me to quiz"
+        if sender.title(for: .normal) == "Finish" {
+            // Perform the segue to NumbersQuizViewController
+            performSegue(withIdentifier: "AlphabetsLessonsCompleted", sender: self)
+            return
+        }
+        // Get the current video
+        var AlphabetscurrentVideo = AlphabetsDataModel.shared.videos[AlphabetscurrentVideoIndex]
+        
+        // Set the current video as viewed
+        AlphabetscurrentVideo.isCompleted = true
+        
+        // Update the video in the data model with the new state
+        AlphabetsDataModel.shared.videos[AlphabetscurrentVideoIndex] = AlphabetscurrentVideo
+        
+        // Print the name of the current video and its updated state (alreadyViewed)
+        print("Video: \(AlphabetscurrentVideo.title), HasCompleted: \(AlphabetscurrentVideo.isCompleted)") // Shows video name and its current state
+          
+
+
+        // Check if all videos have been viewed at least once
+        let allAlphabetsVideosCompleted = AlphabetsDataModel.shared.videos.allSatisfy { $0.isCompleted }
+        if allAlphabetsVideosCompleted{
+            print("All videos are completed")
+            
+        }
+        
+        // Check if we are at the last video
+        if AlphabetscurrentVideoIndex == AlphabetsDataModel.shared.videos.count - 1 {
+            if allAlphabetsVideosCompleted {
+                // Change the button title to "Take me to quiz"
+                sender.setTitle("Finish", for: .normal)
+                print(" Button title changed to 'Finish'.")
+            }
+        } else {
+            // Move to the next video
+            AlphabetscurrentVideoIndex += 1
+        }
+
                 // Remove the current player view from the videoView
-                playerViewController?.view.removeFromSuperview()
+                AlphabetsplayerViewController?.view.removeFromSuperview()
                 loadVideo() // Load the next video
     }
+    // Save the updated ButtonState to UserDefaults
+
+
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        playerViewController?.view.frame = videoView.bounds // Update the frame to fit the video view
+        AlphabetsplayerViewController?.view.frame = videoView.bounds // Update the frame to fit the video view
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         
         // Stop video and clear transcription when navigating back
-        playerViewController?.player?.pause()
-        transcriptionTimer?.invalidate()
+        AlphabetsplayerViewController?.player?.pause()
+        AlphabetstranscriptionTimer?.invalidate()
         loadingIndicator.stopAnimating()
     }
 
     deinit {
-        transcriptionTimer?.invalidate() // Clean up the timer
+        AlphabetstranscriptionTimer?.invalidate() // Clean up the timer
         NotificationCenter.default.removeObserver(self) // Remove observers
     }
 }
