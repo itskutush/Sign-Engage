@@ -26,9 +26,9 @@ struct Button {
 
 var ButtonState: [Button] = [
     //Chapter 1 buttons
-    Button(symbolName: "textformat.numbers", isUnlocked: true,chapter: 1 ),
+    Button(symbolName: "numbers", isUnlocked: true,chapter: 1 ),
     Button(symbolName: "trophy.fill", isUnlocked: false, chapter: 1),
-    Button(symbolName: "character", isUnlocked: false, chapter: 1),
+    Button(symbolName: "characters.uppercase", isUnlocked: false, chapter: 1),
     Button(symbolName: "trophy.fill", isUnlocked: false, chapter: 1),
     Button(symbolName: "figure.wave", isUnlocked: false,  chapter: 1),
     Button(symbolName: "trophy.fill", isUnlocked: false, chapter: 1),
@@ -42,5 +42,6 @@ var ButtonState: [Button] = [
     Button(symbolName: "trophy.fill", isUnlocked: false,chapter: 2),  // Button 11 (Chapter 2)
 
 ]
+
 
 

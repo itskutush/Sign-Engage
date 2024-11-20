@@ -152,30 +152,6 @@ class cell: UICollectionViewCell {
         }
     }
 
-
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
     // Create the IBAction to handle button tap
     @IBAction func firstButtontapped(_ sender: UIButton) {
         // Notify the parent view controller that the button was tapped
